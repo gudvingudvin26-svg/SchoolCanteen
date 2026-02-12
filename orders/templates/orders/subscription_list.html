@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Абонементы</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'menu_list' %}">Меню</a>
+                <a class="nav-link" href="{% url 'profile' %}">Профиль</a>
+                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2>Абонементы на питание</h2>
+
+        <div class="row mt-4">
+            {% for sub in subscriptions %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">{{ sub.name }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title text-center mb-3">{{ sub.price }} ₽</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">✓ Завтраки: {{ sub.breakfast_count }}</li>
+                            <li class="mb-2">✓ Обеды: {{ sub.lunch_count }}</li>
+                            <li class="mb-2">✓ Срок действия: 30 дней</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'buy_subscription' sub.id %}" class="btn btn-primary w-100">Приобрести</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

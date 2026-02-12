@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Меню на {{ menu.date }}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'home' %}">Главная</a>
+                <a class="nav-link" href="{% url 'menu_list' %}">Меню</a>
+                <a class="nav-link" href="{% url 'order_history' %}">Заказы</a>
+                <a class="nav-link" href="{% url 'profile' %}">Профиль</a>
+                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-calendar"></i>
+                Меню на {{ menu.date|date:"d.m.Y" }}
+            </h2>
+            <a href="{% url 'menu_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Назад к меню
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-cup-hot"></i> Завтрак
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {% for dish in menu.breakfast_items.all %}
+                        <div class="mb-4 p-3 border rounded">
+                            <div class="d-flex justify-content-between">
+                                <h5>{{ dish.name }}</h5>
+                                <span class="badge bg-primary fs-6">{{ dish.price }} ₽</span>
+                            </div>
+                            <p class="text-muted mb-2">{{ dish.description }}</p>
+                            <div class="row mb-2">
+                                <div class="col-4 text-center">
+                                    <small class="text-muted">Калории</small>
+                                    <br>
+                                    <strong>{{ dish.calories }} ккал</strong>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small class="text-muted">Белки</small>
+                                    <br>
+                                    <strong>{{ dish.proteins }} г</strong>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small class="text-muted">Жиры</small>
+                                    <br>
+                                    <strong>{{ dish.fats }} г</strong>
+                                </div>
+                            </div>
+                            {% if dish.allergens %}
+                            <p class="mb-2">
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    Аллергены: {{ dish.allergens }}
+                                </span>
+                            </p>
+                            {% endif %}
+                            <a href="{% url 'order_create' dish.id %}" class="btn btn-success w-100 mt-2">
+                                <i class="bi bi-cart"></i> Заказать
+                            </a>
+                        </div>
+                        {% empty %}
+                        <p class="text-center text-muted">На завтрак нет блюд</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-egg-fried"></i> Обед
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {% for dish in menu.lunch_items.all %}
+                        <div class="mb-4 p-3 border rounded">
+                            <div class="d-flex justify-content-between">
+                                <h5>{{ dish.name }}</h5>
+                                <span class="badge bg-success fs-6">{{ dish.price }} ₽</span>
+                            </div>
+                            <p class="text-muted mb-2">{{ dish.description }}</p>
+                            <div class="row mb-2">
+                                <div class="col-4 text-center">
+                                    <small class="text-muted">Калории</small>
+                                    <br>
+                                    <strong>{{ dish.calories }} ккал</strong>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small class="text-muted">Белки</small>
+                                    <br>
+                                    <strong>{{ dish.proteins }} г</strong>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small class="text-muted">Жиры</small>
+                                    <br>
+                                    <strong>{{ dish.fats }} г</strong>
+                                </div>
+                            </div>
+                            {% if dish.allergens %}
+                            <p class="mb-2">
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    Аллергены: {{ dish.allergens }}
+                                </span>
+                            </p>
+                            {% endif %}
+                            <a href="{% url 'order_create' dish.id %}" class="btn btn-success w-100 mt-2">
+                                <i class="bi bi-cart"></i> Заказать
+                            </a>
+                            <<a href="{% url 'review_list' dish.id %}" class="btn btn-outline-warning w-100 mt-2">
+                                <i class="bi bi-star"></i> Отзывы ({{ dish.reviews.count }})
+                            </a>
+                        </div>
+                        {% empty %}
+                        <p class="text-center text-muted">На обед нет блюд</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

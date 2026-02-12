@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Заявки на закупку</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'home' %}">Главная</a>
+                <a class="nav-link" href="{% url 'cook_dashboard' %}">Панель повара</a>
+                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <h2>Заявки на закупку</h2>
+
+        <div class="table-responsive mt-3">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Продукт</th>
+                        <th>Количество</th>
+                        <th>Заявитель</th>
+                        <th>Дата</th>
+                        <th>Статус</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in requests %}
+                    <tr>
+                        <td>{{ request.id }}</td>
+                        <td>{{ request.ingredient.name }}</td>
+                        <td>{{ request.quantity }} {{ request.ingredient.get_unit_display }}</td>
+                        <td>{{ request.created_by.first_name }} {{ request.created_by.last_name }}</td>
+                        <td>{{ request.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            {% if request.status == 'pending' %}
+                                <span class="badge bg-warning">Ожидает</span>
+                            {% elif request.status == 'approved' %}
+                                <span class="badge bg-success">Согласована</span>
+                            {% elif request.status == 'rejected' %}
+                                <span class="badge bg-danger">Отклонена</span>
+                            {% elif request.status == 'completed' %}
+                                <span class="badge bg-info">Выполнена</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.role == 'admin' and request.status == 'pending' %}
+                                <a href="{% url 'purchase_request_approve' request.id %}" class="btn btn-sm btn-success">Согласовать</a>
+                                <a href="{% url 'purchase_request_reject' request.id %}" class="btn btn-sm btn-danger">Отклонить</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">Нет заявок</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

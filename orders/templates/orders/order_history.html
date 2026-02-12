@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>История заказов</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'menu_list' %}">Меню</a>
+                <a class="nav-link" href="{% url 'profile' %}">Профиль</a>
+                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <h2>Мои абонементы</h2>
+        <div class="row mt-3">
+            {% for sub in subscriptions %}
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0">{{ sub.name }}</h6>
+                    </div>
+                    <div class="card-body">
+                        <p>Завтраки: {{ sub.breakfast_count }}</p>
+                        <p>Обеды: {{ sub.lunch_count }}</p>
+                        <p>Действует до: {{ sub.end_date }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p>Нет активных абонементов</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h2 class="mt-4">История заказов</h2>
+        <div class="table-responsive mt-3">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Дата заказа</th>
+                        <th>Блюдо</th>
+                        <th>Дата получения</th>
+                        <th>Количество</th>
+                        <th>Сумма</th>
+                        <th>Статус</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.order_date|date:"d.m.Y H:i" }}</td>
+                        <td>{{ order.dish.name }}</td>
+                        <td>{{ order.meal_date }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>{{ order.price }} ₽</td>
+                        <td>
+                            {% if order.status == 'pending' %}
+                                <span class="badge bg-warning">Ожидает оплаты</span>
+                            {% elif order.status == 'paid' %}
+                                <span class="badge bg-success">Оплачен</span>
+                            {% elif order.status == 'completed' %}
+                                <span class="badge bg-info">Получен</span>
+                            {% elif order.status == 'cancelled' %}
+                                <span class="badge bg-danger">Отменен</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if order.status == 'paid' and order.meal_date >= today %}
+                                <a href="{% url 'mark_order_received' order.id %}" class="btn btn-sm btn-success">Отметить получение</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">Нет заказов</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

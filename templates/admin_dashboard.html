@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Панель администратора</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'home' %}">Главная</a>
+                <a class="nav-link" href="{% url 'reports_dashboard' %}">Отчеты</a>
+                <a class="nav-link" href="{% url 'purchase_request_list' %}">Заявки</a>
+                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2>Панель администратора</h2>
+
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Статистика оплат</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="display-4">{{ total_payments }} ₽</p>
+                        <p class="text-muted">За последние 30 дней</p>
+                        <a href="{% url 'finance_report' %}" class="btn btn-primary">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Посещаемость</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="display-4">{{ total_orders }}</p>
+                        <p class="text-muted">Обедов выдано за 30 дней</p>
+                        <a href="{% url 'attendance_report' %}" class="btn btn-success">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">Заявки на закупку</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="display-4">{{ pending_requests }}</p>
+                        <p class="text-muted">Ожидают согласования</p>
+                        <a href="{% url 'purchase_request_list' %}" class="btn btn-warning">Перейти к заявкам</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
