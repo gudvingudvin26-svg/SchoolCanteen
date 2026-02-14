@@ -180,10 +180,12 @@ def cook_dashboard(request):
 
     today = timezone.now().date()
     todays_orders = Order.objects.filter(meal_date=today).order_by('meal_date')
+    completed_count = todays_orders.filter(status='completed').count()
 
     return render(request, 'orders/cook_dashboard.html', {
         'orders': todays_orders,
-        'today': today
+        'today': today,
+        'completed_count': completed_count
     })
 
 

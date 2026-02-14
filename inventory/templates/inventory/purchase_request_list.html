@@ -47,7 +47,7 @@
                         <td>{{ request.ingredient.name }}</td>
                         <td>{{ request.quantity }} {{ request.ingredient.get_unit_display }}</td>
                         <td>{{ request.created_by.first_name }} {{ request.created_by.last_name }}</td>
-                        <td>{{ request.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>{{ request.created_at|date:"d.m.Y" }}</td>
                         <td>
                             {% if request.status == 'pending' %}
                                 <span class="badge bg-warning">Ожидает</span>

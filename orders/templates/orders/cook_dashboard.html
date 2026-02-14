@@ -143,11 +143,11 @@
                     <div class="card-body">
                         <div class="row text-center">
                             <div class="col-6">
-                                <h3>{{ orders.count }}</h3>
+                                <h3>{{ orders|length }}</h3>
                                 <small class="text-muted">Заказов сегодня</small>
                             </div>
                             <div class="col-6">
-                                <h3>{{ orders.completed.count }}</h3>
+                                <h3>{{ completed_count }}</h3>
                                 <small class="text-muted">Выдано</small>
                             </div>
                         </div>

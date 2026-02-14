@@ -76,6 +76,9 @@
                             <a href="{% url 'order_create' dish.id %}" class="btn btn-success w-100 mt-2">
                                 <i class="bi bi-cart"></i> Заказать
                             </a>
+                            <a href="{% url 'review_list' dish.id %}" class="btn btn-outline-warning w-100 mt-2">
+                                <i class="bi bi-star"></i> Отзывы ({{ dish.reviews.count }})
+                            </a>
                         </div>
                         {% empty %}
                         <p class="text-center text-muted">На завтрак нет блюд</p>
@@ -127,7 +130,7 @@
                             <a href="{% url 'order_create' dish.id %}" class="btn btn-success w-100 mt-2">
                                 <i class="bi bi-cart"></i> Заказать
                             </a>
-                            <<a href="{% url 'review_list' dish.id %}" class="btn btn-outline-warning w-100 mt-2">
+                            <a href="{% url 'review_list' dish.id %}" class="btn btn-outline-warning w-100 mt-2">
                                 <i class="bi bi-star"></i> Отзывы ({{ dish.reviews.count }})
                             </a>
                         </div>
