@@ -8,15 +8,19 @@
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'home' %}">Главная</a>
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" href="{% url 'home' %}">Главная</a>
+            {% if user.role == 'cook' %}
                 <a class="nav-link" href="{% url 'cook_dashboard' %}">Панель повара</a>
-                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
-            </div>
+            {% elif user.role == 'admin' %}
+                <a class="nav-link" href="{% url 'admin_dashboard' %}">Панель администратора</a>
+            {% endif %}
+            <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <div class="container mt-4">
         {% if messages %}

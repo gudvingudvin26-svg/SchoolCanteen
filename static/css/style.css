@@ -1,0 +1,193 @@
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    --info-gradient: linear-gradient(135deg, #17a2b8 0%, #6610f2 100%);
+    --warning-gradient: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    --danger-gradient: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    --dark-gradient: linear-gradient(135deg, #343a40 0%, #23272b 100%);
+}
+
+.navbar-custom {
+    background: var(--primary-gradient);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.navbar-cook {
+    background: var(--success-gradient);
+}
+
+.navbar-admin {
+    background: var(--info-gradient);
+}
+
+.navbar-brand-custom {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: white !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.user-card {
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.stat-card {
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.stat-card-success {
+    background: var(--success-gradient);
+}
+
+.stat-card-info {
+    background: var(--info-gradient);
+}
+
+.stat-card-warning {
+    background: var(--warning-gradient);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.feature-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: #667eea;
+    margin-bottom: 15px;
+}
+
+.btn-custom {
+    border-radius: 25px;
+    padding: 8px 25px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-custom:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.card-header-custom {
+    background: var(--primary-gradient);
+    color: white;
+    font-weight: bold;
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.card-header-success {
+    background: var(--success-gradient);
+    color: white;
+}
+
+.card-header-info {
+    background: var(--info-gradient);
+    color: white;
+}
+
+.card-header-warning {
+    background: var(--warning-gradient);
+    color: white;
+}
+
+.table-custom {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.table-custom thead {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.badge-custom {
+    padding: 8px 12px;
+    border-radius: 25px;
+    font-weight: 500;
+}
+
+.footer-custom {
+    background: var(--dark-gradient);
+    color: white;
+    padding: 20px 0;
+    margin-top: 50px;
+}
+
+.alert-custom {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.price-tag {
+    background: var(--warning-gradient);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 25px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.allergen-tag {
+    background: var(--danger-gradient);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 25px;
+    font-size: 0.8rem;
+    display: inline-block;
+    margin-right: 5px;
+}
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container {
+    flex: 1;
+}
+
+.footer-custom {
+    background: var(--dark-gradient);
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    width: 100%;
+    margin-top: auto;
+}
+
+.footer-custom p {
+    margin-bottom: 0;
+}

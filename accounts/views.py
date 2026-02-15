@@ -2,11 +2,21 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Sum, Count
+from django.utils import timezone
+from datetime import timedelta
 from .models import User, Allergy, Preference
+from orders.models import Order, Payment
+from inventory.models import PurchaseRequest
 
 
 def home(request):
-    return render(request, 'accounts/home.html')
+    context = {}
+    if request.user.is_authenticated:
+        if request.user.role == 'admin':
+            context['total_payments'] = Order.objects.filter(status='paid').aggregate(Sum('price'))['price__sum'] or 0
+            context['pending_requests'] = PurchaseRequest.objects.filter(status='pending').count()
+    return render(request, 'accounts/home.html', context)
 
 
 def register(request):
@@ -19,30 +29,17 @@ def register(request):
         role = request.POST.get('role', 'student')
         class_number = request.POST.get('class_number', '')
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Пользователь с таким именем уже существует')
-            return render(request, 'accounts/register.html')
-
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'Пользователь с таким email уже существует')
-            return render(request, 'accounts/register.html')
-
-        try:
-            user = User.objects.create_user(
-                username=username,
-                password=password,
-                email=email,
-                first_name=first_name,
-                last_name=last_name,
-                role=role,
-                class_number=class_number
-            )
-            login(request, user)
-            return redirect('home')
-        except:
-            messages.error(request, 'Ошибка при регистрации')
-            return render(request, 'accounts/register.html')
-
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            role=role,
+            class_number=class_number
+        )
+        login(request, user)
+        return redirect('home')
     return render(request, 'accounts/register.html')
 
 
@@ -94,14 +91,53 @@ def update_preferences(request):
     return redirect('profile')
 
 
-from decimal import Decimal
-
 @login_required
-def add_balance(request):
-    if request.method == 'POST':
-        amount = Decimal(request.POST.get('amount', 0))
-        request.user.balance += amount
-        request.user.save()
-        messages.success(request, f'Баланс пополнен на {amount} ₽')
-        return redirect('profile')
-    return render(request, 'accounts/add_balance.html')
+def admin_dashboard(request):
+    if request.user.role != 'admin':
+        messages.error(request, 'Доступ запрещен')
+        return redirect('home')
+
+    date_to = timezone.now().date()
+    date_from = date_to - timedelta(days=30)
+
+    total_payments = Payment.objects.filter(
+        payment_date__date__gte=date_from,
+        payment_date__date__lte=date_to
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    total_orders = Order.objects.filter(
+        status='completed',
+        meal_date__gte=date_from,
+        meal_date__lte=date_to
+    ).count()
+
+    pending_requests = PurchaseRequest.objects.filter(status='pending').count()
+
+    payments_count = Payment.objects.filter(
+        payment_date__date__gte=date_from,
+        payment_date__date__lte=date_to
+    ).count()
+
+    subscriptions_count = Payment.objects.filter(
+        payment_type='subscription',
+        payment_date__date__gte=date_from,
+        payment_date__date__lte=date_to
+    ).count()
+
+    single_payments_count = Payment.objects.filter(
+        payment_type='single',
+        payment_date__date__gte=date_from,
+        payment_date__date__lte=date_to
+    ).count()
+
+    context = {
+        'total_payments': total_payments,
+        'total_orders': total_orders,
+        'pending_requests': pending_requests,
+        'payments_count': payments_count,
+        'subscriptions_count': subscriptions_count,
+        'single_payments_count': single_payments_count,
+        'date_from': date_from,
+        'date_to': date_to,
+    }
+    return render(request, 'admin_dashboard.html', context)

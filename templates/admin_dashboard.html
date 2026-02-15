@@ -5,64 +5,81 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-admin">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <a class="navbar-brand navbar-brand-custom" href="{% url 'home' %}">🍽️ Школьная столовая (Админ)</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'home' %}">Главная</a>
-                <a class="nav-link" href="{% url 'reports_dashboard' %}">Отчеты</a>
-                <a class="nav-link" href="{% url 'purchase_request_list' %}">Заявки</a>
-                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                <span class="nav-link text-white">{{ user.first_name }} {{ user.last_name }}</span>
+                <a class="nav-link" href="{% url 'home' %}">🏠 Главная</a>
+                <a class="nav-link" href="{% url 'reports_dashboard' %}">📊 Отчеты</a>
+                <a class="nav-link" href="{% url 'purchase_request_list' %}">📝 Заявки</a>
+                <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
-        <h2>Панель администратора</h2>
+        <div class="stat-card">
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="stat-number">{{ total_payments }} ₽</div>
+                    <p class="mb-0">Всего оплат за 30 дней</p>
+                    <small>{{ date_from|date:"d.m.Y" }} - {{ date_to|date:"d.m.Y" }}</small>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-number">{{ total_orders }}</div>
+                    <p class="mb-0">Выдано обедов</p>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-number">{{ pending_requests }}</div>
+                    <p class="mb-0">Заявок ожидает</p>
+                </div>
+            </div>
+        </div>
 
         <div class="row mt-4">
-            <div class="col-md-4 mb-3">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Статистика оплат</h5>
-                    </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
                     <div class="card-body">
-                        <p class="display-4">{{ total_payments }} ₽</p>
-                        <p class="text-muted">За последние 30 дней</p>
-                        <a href="{% url 'finance_report' %}" class="btn btn-primary">Подробнее</a>
+                        <h5 class="card-title">📊 Детализация оплат</h5>
+                        <p class="card-text">Всего платежей: <strong>{{ payments_count }}</strong></p>
+                        <p class="card-text">Абонементы: <strong>{{ subscriptions_count }}</strong></p>
+                        <p class="card-text">Разовые платежи: <strong>{{ single_payments_count }}</strong></p>
                     </div>
                 </div>
             </div>
-
-            <div class="col-md-4 mb-3">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Посещаемость</h5>
-                    </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
                     <div class="card-body">
-                        <p class="display-4">{{ total_orders }}</p>
-                        <p class="text-muted">Обедов выдано за 30 дней</p>
-                        <a href="{% url 'attendance_report' %}" class="btn btn-success">Подробнее</a>
+                        <h5 class="card-title">📈 Быстрые действия</h5>
+                        <a href="{% url 'finance_report' %}" class="btn btn-primary w-100 mb-2">Финансовый отчет</a>
+                        <a href="{% url 'attendance_report' %}" class="btn btn-success w-100 mb-2">Отчет по посещаемости</a>
+                        <a href="{% url 'purchase_request_list' %}" class="btn btn-warning w-100">Заявки на закупку</a>
                     </div>
                 </div>
             </div>
-
-            <div class="col-md-4 mb-3">
-                <div class="card">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">Заявки на закупку</h5>
-                    </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
                     <div class="card-body">
-                        <p class="display-4">{{ pending_requests }}</p>
-                        <p class="text-muted">Ожидают согласования</p>
-                        <a href="{% url 'purchase_request_list' %}" class="btn btn-warning">Перейти к заявкам</a>
+                        <h5 class="card-title">👥 Пользователи</h5>
+                        <p class="card-text">Всего учеников: <strong>{{ students_count|default:"0" }}</strong></p>
+                        <p class="card-text">Поваров: <strong>{{ cooks_count|default:"0" }}</strong></p>
+                        <a href="/admin/accounts/user/" class="btn btn-info w-100">Управление пользователями</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <footer class="footer-custom mt-5">
+        <div class="container text-center">
+            <p class="mb-0">© 2026 Школьная столовая. Команда 875.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
