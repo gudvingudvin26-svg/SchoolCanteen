@@ -5,15 +5,19 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-cook">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <a class="navbar-brand navbar-brand-custom" href="{% url 'home' %}">🍽️ Школьная столовая (Повар)</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'home' %}">Главная</a>
-                <a class="nav-link" href="{% url 'cook_dashboard' %}">Панель повара</a>
-                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                <span class="nav-link text-white">{{ user.first_name }} {{ user.last_name }}</span>
+                <a class="nav-link" href="{% url 'home' %}">🏠 Главная</a>
+                <a class="nav-link" href="{% url 'cook_dashboard' %}">👨‍🍳 Панель повара</a>
+                <a class="nav-link" href="{% url 'inventory_list' %}">📦 Склад</a>
+                <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
             </div>
         </div>
     </nav>
@@ -21,33 +25,55 @@
     <div class="container mt-4">
         <div class="row justify-content-center">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
+                <div class="card feature-card">
+                    <div class="card-header card-header-success">
                         <h5 class="mb-0">Создание заявки на закупку</h5>
                     </div>
                     <div class="card-body">
                         <form method="post">
                             {% csrf_token %}
                             <div class="mb-3">
-                                <label>Продукт</label>
-                                <select name="ingredient" class="form-control" required>
+                                <label class="form-label">Продукт</label>
+                                <select name="ingredient" class="form-select" required>
                                     <option value="">Выберите продукт</option>
                                     {% for ingredient in ingredients %}
-                                        <option value="{{ ingredient.id }}">{{ ingredient.name }} ({{ ingredient.quantity }} {{ ingredient.get_unit_display }})</option>
+                                        <option value="{{ ingredient.id }}" {% if request.GET.ingredient == ingredient.id|stringformat:"i" %}selected{% endif %}>
+                                            {{ ingredient.name }} ({{ ingredient.quantity }} {{ ingredient.get_unit_display }})
+                                        </option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label>Количество</label>
-                                <input type="number" name="quantity" step="0.01" class="form-control" required>
+                                <label class="form-label">Количество</label>
+                                <input type="number" name="quantity" step="0.01" class="form-control"
+                                       placeholder="Введите количество" min="0.01" required>
+                                <small class="text-muted">Укажите необходимое количество</small>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">Отправить заявку</button>
+
+                            <div class="alert alert-info">
+                                <small>⚠️ Заявка будет отправлена на согласование администратору</small>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-custom">
+                                    📤 Отправить заявку
+                                </button>
+                                <a href="{% url 'purchase_request_list' %}" class="btn btn-outline-secondary btn-custom">
+                                    ← Отмена
+                                </a>
+                            </div>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <footer class="footer-custom mt-5">
+        <div class="container">
+            <p class="mb-0">© 2026 Школьная столовая. Команда 875.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

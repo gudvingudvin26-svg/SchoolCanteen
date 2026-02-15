@@ -19,6 +19,8 @@ def home(request):
     return render(request, 'accounts/home.html', context)
 
 
+from django.db import IntegrityError
+
 def register(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -29,17 +31,31 @@ def register(request):
         role = request.POST.get('role', 'student')
         class_number = request.POST.get('class_number', '')
 
-        user = User.objects.create_user(
-            username=username,
-            password=password,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-            role=role,
-            class_number=class_number
-        )
-        login(request, user)
-        return redirect('home')
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Пользователь с таким именем уже существует')
+            return render(request, 'accounts/register.html')
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Пользователь с таким email уже существует')
+            return render(request, 'accounts/register.html')
+
+        try:
+            user = User.objects.create_user(
+                username=username,
+                password=password,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                role=role,
+                class_number=class_number
+            )
+            login(request, user)
+            messages.success(request, 'Регистрация прошла успешно!')
+            return redirect('home')
+        except IntegrityError:
+            messages.error(request, 'Ошибка при создании пользователя')
+            return render(request, 'accounts/register.html')
+
     return render(request, 'accounts/register.html')
 
 
@@ -141,3 +157,18 @@ def admin_dashboard(request):
         'date_to': date_to,
     }
     return render(request, 'admin_dashboard.html', context)
+@login_required
+def add_balance(request):
+    if request.method == 'POST':
+        amount = request.POST.get('amount', 0)
+        try:
+            amount = float(amount)
+            if amount > 0:
+                request.user.balance += amount
+                request.user.save()
+                messages.success(request, f'Баланс пополнен на {amount} ₽')
+            else:
+                messages.error(request, 'Сумма должна быть положительной')
+        except:
+            messages.error(request, 'Некорректная сумма')
+    return redirect('profile')

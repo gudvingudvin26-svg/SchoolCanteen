@@ -5,121 +5,52 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <a class="navbar-brand navbar-brand-custom" href="{% url 'home' %}">🍽️ Школьная столовая</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'home' %}">Главная</a>
-                <a class="nav-link" href="{% url 'menu_list' %}">Меню</a>
-                <a class="nav-link" href="{% url 'order_history' %}">Заказы</a>
-                <a class="nav-link" href="{% url 'my_subscriptions' %}">Абонементы</a>
-                <a class="nav-link" href="{% url 'profile' %}">Профиль</a>
-                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                <a class="nav-link" href="{% url 'menu_list' %}">📅 Меню</a>
+                <a class="nav-link" href="{% url 'profile' %}">👤 Профиль</a>
+                <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'danger' }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
+            <div class="col-md-6">
+                <div class="card feature-card">
+                    <div class="card-header card-header-custom">
                         <h5 class="mb-0">Оформление заказа</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 text-center">
-                                {% if dish.image %}
-                                    <img src="{{ dish.image.url }}" class="img-fluid rounded mb-3" alt="{{ dish.name }}">
-                                {% else %}
-                                    <i class="bi bi-image fs-1 text-muted"></i>
-                                    <p class="text-muted">Нет изображения</p>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-8">
-                                <h4>{{ dish.name }}</h4>
-                                <p class="text-muted">{{ dish.description }}</p>
-                                <p><strong>Цена:</strong> {{ dish.price }} ₽</p>
-                                <p><strong>Калории:</strong> {{ dish.calories }} ккал</p>
-                                <p><strong>Б/Ж/У:</strong> {{ dish.proteins }}/{{ dish.fats }}/{{ dish.carbohydrates }}</p>
-                                {% if dish.allergens %}
-                                    <p><span class="badge bg-danger">Аллергены: {{ dish.allergens }}</span></p>
-                                {% endif %}
-                            </div>
-                        </div>
+                        <h6>{{ dish.name }}</h6>
+                        <p class="text-muted">{{ dish.description }}</p>
+                        <p>Цена: <span class="price-tag">{{ dish.price }} ₽</span></p>
+                        <p>Ваш баланс: <span class="price-tag">{{ user.balance }} ₽</span></p>
 
-                        <hr>
+                        {% if user.balance < dish.price %}
+                            <div class="alert alert-warning">
+                                Недостаточно средств. <a href="{% url 'profile' %}" class="alert-link">Пополнить баланс</a>
+                            </div>
+                        {% endif %}
 
                         <form method="post">
                             {% csrf_token %}
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Дата получения</label>
-                                    <input type="date" name="meal_date" class="form-control" min="{{ today|date:'Y-m-d' }}" value="{{ today|date:'Y-m-d' }}" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Количество</label>
-                                    <input type="number" name="quantity" class="form-control" value="1" min="1" required>
-                                </div>
-                            </div>
-
-                            {% if subscriptions %}
                             <div class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="use_subscription" id="useSubscription" value="yes">
-                                    <label class="form-check-label" for="useSubscription">
-                                        <strong>Использовать абонемент</strong>
-                                    </label>
-                                </div>
-                                <small class="text-muted d-block mt-2">
-                                    <i class="bi bi-info-circle"></i>
-                                    Доступные абонементы:
-                                </small>
-                                <ul class="list-unstyled mt-1">
-                                    {% for sub in subscriptions %}
-                                        {% if dish.meal_type == 'breakfast' and sub.remaining_breakfast > 0 %}
-                                            <li class="text-success">
-                                                <i class="bi bi-check-circle"></i>
-                                                {{ sub.name }}: осталось {{ sub.remaining_breakfast }} завтраков
-                                            </li>
-                                        {% elif dish.meal_type == 'lunch' and sub.remaining_lunch > 0 %}
-                                            <li class="text-success">
-                                                <i class="bi bi-check-circle"></i>
-                                                {{ sub.name }}: осталось {{ sub.remaining_lunch }} обедов
-                                            </li>
-                                        {% endif %}
-                                    {% endfor %}
-                                </ul>
+                                <label>Дата получения</label>
+                                <input type="date" name="meal_date" class="form-control" min="{{ today|date:'Y-m-d' }}" required>
                             </div>
-                            {% endif %}
-
-                            <div class="alert alert-info">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span><i class="bi bi-wallet2"></i> Ваш баланс:</span>
-                                    <strong class="fs-5">{{ user.balance }} ₽</strong>
-                                </div>
-                                <div class="mt-2">
-                                    <a href="{% url 'add_balance' %}" class="btn btn-sm btn-warning">
-                                        <i class="bi bi-cash"></i> Пополнить
-                                    </a>
-                                    <a href="{% url 'my_subscriptions' %}" class="btn btn-sm btn-info">
-                                        <i class="bi bi-ticket"></i> Мои абонементы
-                                    </a>
-                                </div>
+                            <div class="mb-3">
+                                <label>Количество</label>
+                                <input type="number" name="quantity" class="form-control" value="1" min="1" required>
                             </div>
-
-                            <button type="submit" class="btn btn-primary w-100 py-3">
-                                <i class="bi bi-check-circle"></i> Подтвердить заказ
+                            <button type="submit" class="btn btn-primary btn-custom w-100" {% if user.balance < dish.price %}disabled{% endif %}>
+                                Продолжить к оплате
                             </button>
                         </form>
                     </div>
@@ -127,6 +58,12 @@
             </div>
         </div>
     </div>
+
+    <footer class="footer-custom mt-5">
+        <div class="container">
+            <p class="mb-0">© 2026 Школьная столовая. Команда 875.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

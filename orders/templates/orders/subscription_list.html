@@ -5,45 +5,95 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <a class="navbar-brand navbar-brand-custom" href="{% url 'home' %}">🍽️ Школьная столовая</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'menu_list' %}">Меню</a>
-                <a class="nav-link" href="{% url 'profile' %}">Профиль</a>
-                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                <a class="nav-link" href="{% url 'home' %}">🏠 Главная</a>
+                <a class="nav-link" href="{% url 'menu_list' %}">📅 Меню</a>
+                <a class="nav-link" href="{% url 'profile' %}">👤 Профиль</a>
+                <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
         <h2>Абонементы на питание</h2>
+        <p class="text-muted">Выберите подходящий тариф</p>
 
         <div class="row mt-4">
             {% for sub in subscriptions %}
             <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">{{ sub.name }}</h5>
+                <div class="card feature-card h-100">
+                    <div class="card-header card-header-custom text-center">
+                        <h4 class="mb-0">{{ sub.name }}</h4>
                     </div>
-                    <div class="card-body">
-                        <h6 class="card-title text-center mb-3">{{ sub.price }} ₽</h6>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">✓ Завтраки: {{ sub.breakfast_count }}</li>
-                            <li class="mb-2">✓ Обеды: {{ sub.lunch_count }}</li>
+                    <div class="card-body text-center">
+                        <h2 class="price-tag d-inline-block mb-3">{{ sub.price }} ₽</h2>
+                        <ul class="list-unstyled mt-3">
+                            <li class="mb-2">✓ Завтраки: <strong>{{ sub.breakfast_count }}</strong></li>
+                            <li class="mb-2">✓ Обеды: <strong>{{ sub.lunch_count }}</strong></li>
                             <li class="mb-2">✓ Срок действия: 30 дней</li>
                         </ul>
                     </div>
-                    <div class="card-footer">
-                        <a href="{% url 'buy_subscription' sub.id %}" class="btn btn-primary w-100">Приобрести</a>
+                    <div class="card-footer bg-white border-0 text-center pb-4">
+                        <a href="{% url 'buy_subscription' sub.id %}" class="btn btn-success btn-custom px-5">Приобрести</a>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
+
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="card feature-card">
+                    <div class="card-header card-header-info">
+                        <h5 class="mb-0">Мои абонементы</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if user_subscriptions %}
+                            <div class="table-responsive">
+                                <table class="table table-custom">
+                                    <thead>
+                                        <tr>
+                                            <th>Название</th>
+                                            <th>Завтраки</th>
+                                            <th>Обеды</th>
+                                            <th>Действует до</th>
+                                            <th>Статус</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for sub in user_subscriptions %}
+                                        <tr>
+                                            <td>{{ sub.name }}</td>
+                                            <td>{{ sub.breakfast_count }}</td>
+                                            <td>{{ sub.lunch_count }}</td>
+                                            <td>{{ sub.end_date|date:"d.m.Y" }}</td>
+                                            <td><span class="badge bg-success">Активен</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">У вас нет активных абонементов</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <footer class="footer-custom mt-5">
+        <div class="container">
+            <p class="mb-0">© 2026 Школьная столовая. Команда 875.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

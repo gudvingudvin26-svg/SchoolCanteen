@@ -5,32 +5,62 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-admin">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <a class="navbar-brand navbar-brand-custom" href="{% url 'home' %}">🍽️ Школьная столовая (Админ)</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'reports_dashboard' %}">Отчеты</a>
-                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                <span class="nav-link text-white">{{ user.first_name }} {{ user.last_name }}</span>
+                <a class="nav-link" href="{% url 'reports_dashboard' %}">📊 Отчеты</a>
+                <a class="nav-link" href="{% url 'admin_dashboard' %}">🏠 Панель</a>
+                <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
-        <h2>Отчет по посещаемости</h2>
-        <p class="text-muted">Период: {{ date_from|date:"d.m.Y" }} - {{ date_to|date:"d.m.Y" }}</p>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Отчет по посещаемости</h2>
+            <a href="{% url 'reports_dashboard' %}" class="btn btn-outline-primary btn-custom">
+                ← Назад к отчетам
+            </a>
+        </div>
 
-        <div class="card mt-4">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">Всего выдано обедов: {{ total_orders }}</h5>
+        <div class="card feature-card mb-4">
+            <div class="card-header card-header-success">
+                <h5 class="mb-0">Период: {{ date_from|date:"d.m.Y" }} - {{ date_to|date:"d.m.Y" }}</h5>
             </div>
             <div class="card-body">
+                <div class="row text-center mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card stat-card-info p-3">
+                            <div class="stat-number">{{ total_orders }}</div>
+                            <p class="mb-0">Всего выдано</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card stat-card-success p-3">
+                            <div class="stat-number">{{ breakfast_total|default:"0" }}</div>
+                            <p class="mb-0">Завтраков</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card stat-card-warning p-3">
+                            <div class="stat-number">{{ lunch_total|default:"0" }}</div>
+                            <p class="mb-0">Обедов</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
-                    <table class="table table-striped">
+                    <table class="table table-custom">
                         <thead>
                             <tr>
                                 <th>Дата</th>
+                                <th>День недели</th>
                                 <th>Завтраки</th>
                                 <th>Обеды</th>
                                 <th>Всего</th>
@@ -40,8 +70,9 @@
                             {% for day in daily_stats %}
                             <tr>
                                 <td>{{ day.date|date:"d.m.Y" }}</td>
-                                <td>{{ day.breakfast_count }}</td>
-                                <td>{{ day.lunch_count }}</td>
+                                <td>{{ day.date|date:"l" }}</td>
+                                <td><span class="badge bg-info">{{ day.breakfast_count }}</span></td>
+                                <td><span class="badge bg-warning">{{ day.lunch_count }}</span></td>
                                 <td><strong>{{ day.total }}</strong></td>
                             </tr>
                             {% endfor %}
@@ -50,11 +81,13 @@
                 </div>
             </div>
         </div>
-
-        <div class="mt-4">
-            <a href="{% url 'reports_dashboard' %}" class="btn btn-secondary">Назад к отчетам</a>
-        </div>
     </div>
+
+    <footer class="footer-custom mt-5">
+        <div class="container">
+            <p class="mb-0">© 2026 Школьная столовая. Команда 875.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

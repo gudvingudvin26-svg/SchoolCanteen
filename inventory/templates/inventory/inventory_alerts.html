@@ -5,53 +5,88 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-cook">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <a class="navbar-brand navbar-brand-custom" href="{% url 'home' %}">🍽️ Школьная столовая (Повар)</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'home' %}">Главная</a>
-                <a class="nav-link" href="{% url 'cook_dashboard' %}">Панель повара</a>
-                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                <span class="nav-link text-white">{{ user.first_name }} {{ user.last_name }}</span>
+                <a class="nav-link" href="{% url 'home' %}">🏠 Главная</a>
+                <a class="nav-link" href="{% url 'cook_dashboard' %}">👨‍🍳 Панель повара</a>
+                <a class="nav-link" href="{% url 'inventory_list' %}">📦 Склад</a>
+                <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
-        <h2>Продукты с низким остатком</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Продукты с низким остатком</h2>
+            <a href="{% url 'inventory_list' %}" class="btn btn-primary btn-custom">
+                ← Назад к складу
+            </a>
+        </div>
 
         {% if low_stock %}
-            <div class="table-responsive mt-3">
-                <table class="table table-danger">
-                    <thead>
-                        <tr>
-                            <th>Продукт</th>
-                            <th>Текущее количество</th>
-                            <th>Минимальный остаток</th>
-                            <th>Действие</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in low_stock %}
-                        <tr>
-                            <td>{{ item.name }}</td>
-                            <td>{{ item.quantity }} {{ item.get_unit_display }}</td>
-                            <td>{{ item.min_quantity }} {{ item.get_unit_display }}</td>
-                            <td>
-                                <a href="{% url 'purchase_request_create' %}" class="btn btn-sm btn-warning">Создать заявку</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="card feature-card border-danger">
+                <div class="card-header card-header-danger">
+                    <h5 class="mb-0">⚠️ Требуется закупка</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Продукт</th>
+                                    <th>Текущее количество</th>
+                                    <th>Минимальный остаток</th>
+                                    <th>Не хватает</th>
+                                    <th>Действие</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in low_stock %}
+                                <tr>
+                                    <td><strong>{{ item.name }}</strong></td>
+                                    <td><span class="price-tag">{{ item.quantity }} {{ item.get_unit_display }}</span></td>
+                                    <td>{{ item.min_quantity }} {{ item.get_unit_display }}</td>
+                                    <td><span class="text-danger">{{ item.min_quantity|add:item.quantity|add:"-" }} {{ item.get_unit_display }}</span></td>
+                                    <td>
+                                        <a href="{% url 'purchase_request_create' %}?ingredient={{ item.id }}" class="btn btn-sm btn-warning">
+                                            ➕ Создать заявку
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         {% else %}
-            <div class="alert alert-success mt-3">
-                Все продукты в достаточном количестве
+            <div class="card feature-card border-success">
+                <div class="card-header card-header-success">
+                    <h5 class="mb-0">✅ Все в порядке</h5>
+                </div>
+                <div class="card-body text-center py-5">
+                    <h4 class="text-success">Все продукты в достаточном количестве</h4>
+                    <p class="text-muted">На складе достаточно запасов</p>
+                    <a href="{% url 'inventory_list' %}" class="btn btn-primary btn-custom mt-3">
+                        Вернуться на склад
+                    </a>
+                </div>
             </div>
         {% endif %}
     </div>
+
+    <footer class="footer-custom mt-5">
+        <div class="container">
+            <p class="mb-0">© 2026 Школьная столовая. Команда 875.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
