@@ -14,4 +14,4 @@
 8. Запустить сервер: `python manage.py runserver`
 
 ## Видеоролик
-Ссылка на видеоролик с демонстрацией: [вставить ссылку]
+Ссылка на видеоролик с демонстрацией: [https://rutube.ru/video/private/34b14fa202c8a742ad70def2ebdd0bd0/?p=150emStpxb80hIhaZD6zGw]
