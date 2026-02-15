@@ -5,15 +5,19 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <a class="navbar-brand navbar-brand-custom" href="{% url 'home' %}">🍽️ Школьная столовая</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'menu_list' %}">Меню</a>
-                <a class="nav-link" href="{% url 'profile' %}">Профиль</a>
-                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                <span class="nav-link text-white">{{ user.first_name }} {{ user.last_name }}</span>
+                <a class="nav-link" href="{% url 'home' %}">🏠 Главная</a>
+                <a class="nav-link" href="{% url 'menu_list' %}">📅 Меню</a>
+                <a class="nav-link" href="{% url 'profile' %}">👤 Профиль</a>
+                <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
             </div>
         </div>
     </nav>
@@ -21,32 +25,56 @@
     <div class="container mt-4">
         <div class="row justify-content-center">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Оплата заказа #{{ order.id }}</h5>
+                <div class="card feature-card">
+                    <div class="card-header card-header-custom">
+                        <h5 class="mb-0">Оплата заказа</h5>
                     </div>
                     <div class="card-body">
-                        <h6>{{ order.dish.name }}</h6>
-                        <p>Количество: {{ order.quantity }}</p>
-                        <p>Сумма к оплате: <strong>{{ order.price }} ₽</strong></p>
-                        <p>Ваш баланс: <strong>{{ user.balance }} ₽</strong></p>
-
-                        {% if user.balance >= order.price %}
-                            <form method="post">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-success w-100">Оплатить</button>
-                            </form>
-                        {% else %}
-                            <div class="alert alert-danger">
-                                Недостаточно средств. Пополните баланс.
-                            </div>
-                            <a href="{% url 'profile' %}" class="btn btn-warning w-100">Пополнить баланс</a>
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-danger alert-custom">{{ message }}</div>
+                            {% endfor %}
                         {% endif %}
+
+                        <div class="order-info mb-4 p-3 border rounded">
+                            <h5>{{ order.dish.name }}</h5>
+                            <p class="mb-1">Количество: {{ order.quantity }}</p>
+                            <p class="mb-1">Дата: {{ order.meal_date|date:"d.m.Y" }}</p>
+                            <p class="mb-0 fw-bold">Сумма: <span class="price-tag">{{ order.price }} ₽</span></p>
+                        </div>
+
+                        <div class="balance-info mb-4 p-3 bg-light rounded">
+                            <p class="mb-1">Ваш баланс: <span class="price-tag">{{ user.balance }} ₽</span></p>
+                            {% if user.balance >= order.price %}
+                                <p class="text-success mb-0">✅ Достаточно средств</p>
+                            {% else %}
+                                <p class="text-danger mb-0">❌ Недостаточно средств (не хватает {{ order.price|add:user.balance|add:"-" }} ₽)</p>
+                            {% endif %}
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg"
+                                        {% if user.balance < order.price %}disabled{% endif %}>
+                                    ✅ Подтвердить оплату
+                                </button>
+                                <a href="{% url 'order_history' %}" class="btn btn-outline-secondary">
+                                    ← Отмена
+                                </a>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <footer class="footer-custom mt-5">
+        <div class="container">
+            <p class="mb-0">© 2026 Школьная столовая. Команда 875.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

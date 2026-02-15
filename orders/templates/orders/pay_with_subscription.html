@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Оплата абонементом</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container">
+            <a class="navbar-brand navbar-brand-custom" href="{% url 'home' %}">🍽️ Школьная столовая</a>
+            <div class="navbar-nav ms-auto">
+                <span class="nav-link text-white">{{ user.first_name }} {{ user.last_name }}</span>
+                <a class="nav-link" href="{% url 'home' %}">🏠 Главная</a>
+                <a class="nav-link" href="{% url 'profile' %}">👤 Профиль</a>
+                <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card feature-card">
+                    <div class="card-header card-header-success">
+                        <h5 class="mb-0">Оплата абонементом</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}warning{% endif %} alert-custom">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <div class="order-info mb-4 p-3 border rounded">
+                            <h5>{{ order.dish.name }}</h5>
+                            <p class="mb-1">Количество: {{ order.quantity }}</p>
+                            <p class="mb-1">Дата: {{ order.meal_date|date:"d.m.Y" }}</p>
+                            <p class="mb-0 text-success fw-bold">Стоимость: 0 ₽ (абонемент)</p>
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <label class="form-label fw-bold mb-3">Выберите абонемент:</label>
+
+                            {% for sub in subscriptions %}
+                            <div class="subscription-option mb-3">
+                                <input type="radio" name="subscription_id" value="{{ sub.id }}"
+                                       id="sub{{ sub.id }}" required>
+                                <label for="sub{{ sub.id }}" class="w-100">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>{{ sub.name }}</h6>
+                                            <p class="mb-1">Действует до: {{ sub.end_date|date:"d.m.Y" }}</p>
+                                            <p class="mb-0">
+                                                Осталось:
+                                                {% if order.dish.meal_type == 'breakfast' %}
+                                                    завтраков: {{ sub.breakfast_count }}
+                                                {% else %}
+                                                    обедов: {{ sub.lunch_count }}
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                            {% endfor %}
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    ✅ Подтвердить оплату
+                                </button>
+                                <a href="{% url 'order_create' order.dish.id %}" class="btn btn-outline-secondary">
+                                    ← Назад
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer-custom mt-5">
+        <div class="container">
+            <p class="mb-0">© 2026 Школьная столовая. Команда 875.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .subscription-option {
+            cursor: pointer;
+        }
+        .subscription-option input[type="radio"] {
+            display: none;
+        }
+        .subscription-option input[type="radio"]:checked + label .card {
+            border: 3px solid #28a745;
+            background: #f0fff0;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .subscription-option .card {
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .subscription-option .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+    </style>
+</body>
+</html>

@@ -7,12 +7,32 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .subscription-option {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .subscription-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .subscription-option.selected {
+            border: 3px solid #ffc107;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
         <div class="container">
             <a class="navbar-brand navbar-brand-custom" href="{% url 'home' %}">🍽️ Школьная столовая</a>
             <div class="navbar-nav ms-auto">
+                <span class="nav-link text-white">{{ user.first_name }} {{ user.last_name }}</span>
+                <a class="nav-link" href="{% url 'home' %}">🏠 Главная</a>
                 <a class="nav-link" href="{% url 'menu_list' %}">📅 Меню</a>
                 <a class="nav-link" href="{% url 'profile' %}">👤 Профиль</a>
                 <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
@@ -22,36 +42,83 @@
 
     <div class="container mt-4">
         <div class="row justify-content-center">
-            <div class="col-md-6">
+            <div class="col-md-8">
                 <div class="card feature-card">
                     <div class="card-header card-header-custom">
                         <h5 class="mb-0">Оформление заказа</h5>
                     </div>
                     <div class="card-body">
-                        <h6>{{ dish.name }}</h6>
-                        <p class="text-muted">{{ dish.description }}</p>
-                        <p>Цена: <span class="price-tag">{{ dish.price }} ₽</span></p>
-                        <p>Ваш баланс: <span class="price-tag">{{ user.balance }} ₽</span></p>
-
-                        {% if user.balance < dish.price %}
-                            <div class="alert alert-warning">
-                                Недостаточно средств. <a href="{% url 'profile' %}" class="alert-link">Пополнить баланс</a>
+                        <div class="dish-info mb-4 p-3 border rounded">
+                            <h4>{{ dish.name }}</h4>
+                            <p class="text-muted">{{ dish.description }}</p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <span class="price-tag">{{ dish.price }} ₽</span>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <small class="text-muted">{{ dish.calories }} ккал</small>
+                                </div>
                             </div>
+                        </div>
+
+                        <div class="balance-info mb-4 p-3 bg-light rounded">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Ваш баланс:</strong>
+                                    <span class="price-tag">{{ user.balance }} ₽</span>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <strong>Тип:</strong>
+                                    {% if dish.meal_type == 'breakfast' %}
+                                        <span class="badge bg-info">Завтрак</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Обед</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if can_use_subscription %}
+                        <div class="alert alert-info">
+                            <strong>ℹ️ У вас есть активные абонементы!</strong>
+                            <p class="mb-0 mt-2">Вы можете оплатить заказ абонементом без списания с баланса.</p>
+                        </div>
                         {% endif %}
 
                         <form method="post">
                             {% csrf_token %}
+
                             <div class="mb-3">
-                                <label>Дата получения</label>
-                                <input type="date" name="meal_date" class="form-control" min="{{ today|date:'Y-m-d' }}" required>
+                                <label class="form-label">Дата получения</label>
+                                <input type="date" name="meal_date" class="form-control"
+                                       min="{{ today|date:'Y-m-d' }}" value="{{ today|date:'Y-m-d' }}" required>
                             </div>
+
                             <div class="mb-3">
-                                <label>Количество</label>
-                                <input type="number" name="quantity" class="form-control" value="1" min="1" required>
+                                <label class="form-label">Количество</label>
+                                <input type="number" name="quantity" class="form-control"
+                                       value="1" min="1" max="10" required>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-custom w-100" {% if user.balance < dish.price %}disabled{% endif %}>
-                                Продолжить к оплате
-                            </button>
+
+                            {% if can_use_subscription %}
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="use_subscription" id="useSubscription">
+                                    <label class="form-check-label" for="useSubscription">
+                                        ✅ Оплатить абонементом (бесплатно)
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    Продолжить
+                                </button>
+                                <a href="{% url 'daily_menu' dish.id %}" class="btn btn-outline-secondary">
+                                    ← Назад к меню
+                                </a>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -66,5 +133,12 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('useSubscription').addEventListener('change', function(e) {
+            if(this.checked) {
+                alert('Заказ будет оплачен абонементом. Баланс не изменится.');
+            }
+        });
+    </script>
 </body>
 </html>

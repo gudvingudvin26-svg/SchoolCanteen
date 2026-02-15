@@ -15,90 +15,122 @@ def order_create(request, dish_id):
     if request.method == 'POST':
         meal_date = request.POST.get('meal_date')
         quantity = int(request.POST.get('quantity', 1))
-        use_subscription = request.POST.get('use_subscription')
+        use_subscription = request.POST.get('use_subscription') == 'on'
 
-        total_price = dish.price * quantity
-
-        if use_subscription:
-            subscriptions = Subscription.objects.filter(
-                user=request.user,
-                is_active=True,
-                start_date__lte=meal_date,
-                end_date__gte=meal_date
-            )
-
-            for subscription in subscriptions:
-                if dish.meal_type == 'breakfast' and subscription.remaining_breakfast() >= quantity:
-                    order = Order.objects.create(
-                        user=request.user,
-                        dish=dish,
-                        meal_date=meal_date,
-                        quantity=quantity,
-                        price=0,
-                        status='paid',
-                        subscription=subscription
-                    )
-                    subscription.used_breakfast += quantity
-                    subscription.save()
-                    messages.success(request, 'Заказ создан по абонементу')
-                    return redirect('order_history')
-                elif dish.meal_type == 'lunch' and subscription.remaining_lunch() >= quantity:
-                    order = Order.objects.create(
-                        user=request.user,
-                        dish=dish,
-                        meal_date=meal_date,
-                        quantity=quantity,
-                        price=0,
-                        status='paid',
-                        subscription=subscription
-                    )
-                    subscription.used_lunch += quantity
-                    subscription.save()
-                    messages.success(request, 'Заказ создан по абонементу')
-                    return redirect('order_history')
-
-            messages.error(request, 'Нет подходящего абонемента с достаточным количеством приемов пищи')
-            return redirect('order_create', dish_id=dish.id)
-
-        if request.user.balance < total_price:
-            messages.error(request, 'Недостаточно средств на балансе')
-            return redirect('add_balance')
+        price = dish.price * quantity
+        final_price = 0 if use_subscription else price
 
         order = Order.objects.create(
             user=request.user,
             dish=dish,
             meal_date=meal_date,
             quantity=quantity,
-            price=total_price,
-            status='paid'
+            price=price,
+            final_price=final_price,
+            status='pending',
+            used_subscription=use_subscription
         )
 
-        request.user.balance -= total_price
-        request.user.save()
+        if use_subscription:
+            return redirect('pay_with_subscription', order_id=order.id)
+        else:
+            return redirect('order_payment', order_id=order.id)
 
-        Payment.objects.create(
-            user=request.user,
-            order=order,
-            amount=total_price,
-            payment_type='single'
-        )
-
-        messages.success(request, 'Заказ успешно создан и оплачен')
-        return redirect('order_history')
-
-    active_subscriptions = Subscription.objects.filter(
+    today = timezone.now().date()
+    subscriptions = Subscription.objects.filter(
         user=request.user,
         is_active=True,
-        end_date__gte=timezone.now().date()
+        end_date__gte=today
     )
+
+    can_use_subscription = False
+    for sub in subscriptions:
+        if dish.meal_type == 'breakfast' and sub.breakfast_count > 0:
+            can_use_subscription = True
+            break
+        elif dish.meal_type == 'lunch' and sub.lunch_count > 0:
+            can_use_subscription = True
+            break
 
     return render(request, 'orders/order_create.html', {
         'dish': dish,
-        'today': timezone.now().date(),
-        'subscriptions': active_subscriptions
+        'today': today,
+        'subscriptions': subscriptions,
+        'can_use_subscription': can_use_subscription
     })
 
 
+@login_required
+def pay_with_subscription(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    if request.method == 'POST':
+        subscription_id = request.POST.get('subscription_id')
+
+        if not subscription_id:
+            messages.error(request, 'Выберите абонемент')
+            return redirect('pay_with_subscription', order_id=order.id)
+
+        try:
+            subscription = Subscription.objects.get(
+                id=subscription_id,
+                user=request.user,
+                is_active=True
+            )
+        except Subscription.DoesNotExist:
+            messages.error(request, 'Абонемент не найден или неактивен')
+            return redirect('pay_with_subscription', order_id=order.id)
+
+        if subscription.end_date < timezone.now().date():
+            messages.error(request, 'Срок действия абонемента истек')
+            return redirect('pay_with_subscription', order_id=order.id)
+
+        if order.dish.meal_type == 'breakfast':
+            if subscription.breakfast_count <= 0:
+                messages.error(request, 'Недостаточно завтраков в абонементе')
+                return redirect('pay_with_subscription', order_id=order.id)
+            subscription.breakfast_count -= 1
+        elif order.dish.meal_type == 'lunch':
+            if subscription.lunch_count <= 0:
+                messages.error(request, 'Недостаточно обедов в абонементе')
+                return redirect('pay_with_subscription', order_id=order.id)
+            subscription.lunch_count -= 1
+        else:
+            messages.error(request, 'Неизвестный тип приема пищи')
+            return redirect('pay_with_subscription', order_id=order.id)
+
+        subscription.save()
+
+        order.status = 'paid'
+        order.price = 0
+        order.subscription = subscription
+        order.save()
+
+        messages.success(request, 'Заказ оплачен абонементом')
+        return redirect('order_history')
+
+    today = timezone.now().date()
+    subscriptions = Subscription.objects.filter(
+        user=request.user,
+        is_active=True,
+        end_date__gte=today
+    )
+
+    available_subs = []
+    for sub in subscriptions:
+        if order.dish.meal_type == 'breakfast' and sub.breakfast_count > 0:
+            available_subs.append(sub)
+        elif order.dish.meal_type == 'lunch' and sub.lunch_count > 0:
+            available_subs.append(sub)
+
+    if not available_subs:
+        messages.warning(request, 'У вас нет подходящих абонементов для этого заказа')
+        return redirect('order_create', dish_id=order.dish.id)
+
+    return render(request, 'orders/pay_with_subscription.html', {
+        'order': order,
+        'subscriptions': available_subs
+    })
 @login_required
 def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by('-order_date')
@@ -214,3 +246,24 @@ def my_subscriptions(request):
         'subscriptions': subscriptions,
         'today': timezone.now().date()
     })
+
+
+@login_required
+def order_payment(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    if request.method == 'POST':
+        if request.user.balance >= order.price:
+            request.user.balance -= order.price
+            request.user.save()
+
+            order.status = 'paid'
+            order.save()
+
+            messages.success(request, 'Заказ успешно оплачен')
+            return redirect('order_history')
+        else:
+            messages.error(request, 'Недостаточно средств на балансе')
+            return redirect('order_payment', order_id=order.id)
+
+    return render(request, 'orders/order_payment.html', {'order': order})
