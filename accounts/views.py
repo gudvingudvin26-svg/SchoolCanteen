@@ -2,12 +2,38 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Avg
 from django.utils import timezone
 from datetime import timedelta
 from .models import User, Allergy, Preference
 from orders.models import Order, Payment
 from inventory.models import PurchaseRequest
+from reviews.models import Review
+
+
+@login_required
+def profile(request):
+    if request.user.role == 'student':
+        total_orders = Order.objects.filter(user=request.user).count()
+        completed_orders = Order.objects.filter(user=request.user, status='completed').count()
+        pending_orders = Order.objects.filter(user=request.user, status='paid').count()
+
+        total_reviews = Review.objects.filter(user=request.user).count()
+        recent_reviews = Review.objects.filter(user=request.user).order_by('-created_at')[:3]
+
+        avg_rating = Review.objects.filter(user=request.user).aggregate(Avg('rating'))['rating__avg']
+
+        context = {
+            'total_orders': total_orders,
+            'completed_orders': completed_orders,
+            'pending_orders': pending_orders,
+            'total_reviews': total_reviews,
+            'recent_reviews': recent_reviews,
+            'avg_rating': avg_rating,
+        }
+        return render(request, 'accounts/profile.html', {'user': request.user, **context})
+
+    return render(request, 'accounts/profile.html', {'user': request.user})
 
 
 def home(request):
@@ -18,8 +44,6 @@ def home(request):
             context['pending_requests'] = PurchaseRequest.objects.filter(status='pending').count()
     return render(request, 'accounts/home.html', context)
 
-
-from django.db import IntegrityError
 
 def register(request):
     if request.method == 'POST':
@@ -39,23 +63,18 @@ def register(request):
             messages.error(request, 'Пользователь с таким email уже существует')
             return render(request, 'accounts/register.html')
 
-        try:
-            user = User.objects.create_user(
-                username=username,
-                password=password,
-                email=email,
-                first_name=first_name,
-                last_name=last_name,
-                role=role,
-                class_number=class_number
-            )
-            login(request, user)
-            messages.success(request, 'Регистрация прошла успешно!')
-            return redirect('home')
-        except IntegrityError:
-            messages.error(request, 'Ошибка при создании пользователя')
-            return render(request, 'accounts/register.html')
-
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            role=role,
+            class_number=class_number
+        )
+        login(request, user)
+        messages.success(request, 'Регистрация прошла успешно!')
+        return redirect('home')
     return render(request, 'accounts/register.html')
 
 
@@ -79,11 +98,6 @@ def user_logout(request):
 
 
 @login_required
-def profile(request):
-    return render(request, 'accounts/profile.html', {'user': request.user})
-
-
-@login_required
 def update_allergies(request):
     if request.method == 'POST':
         Allergy.objects.filter(user=request.user).delete()
@@ -104,6 +118,31 @@ def update_preferences(request):
             if pref:
                 Preference.objects.create(user=request.user, name=pref)
         messages.success(request, 'Предпочтения обновлены')
+    return redirect('profile')
+
+
+@login_required
+def add_balance(request):
+    if request.method == 'POST':
+        amount = request.POST.get('amount', '').strip()
+
+        if not amount:
+            messages.error(request, 'Введите сумму')
+            return redirect('profile')
+
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                messages.error(request, 'Сумма должна быть больше 0')
+            elif amount > 100000:
+                messages.error(request, 'Сумма не может превышать 100000 ₽')
+            else:
+                request.user.balance = float(request.user.balance) + amount
+                request.user.save()
+                messages.success(request, f'Баланс успешно пополнен на {amount} ₽')
+        except ValueError:
+            messages.error(request, 'Введите корректное число')
+
     return redirect('profile')
 
 
@@ -157,18 +196,3 @@ def admin_dashboard(request):
         'date_to': date_to,
     }
     return render(request, 'admin_dashboard.html', context)
-@login_required
-def add_balance(request):
-    if request.method == 'POST':
-        amount = request.POST.get('amount', 0)
-        try:
-            amount = float(amount)
-            if amount > 0:
-                request.user.balance += amount
-                request.user.save()
-                messages.success(request, f'Баланс пополнен на {amount} ₽')
-            else:
-                messages.error(request, 'Сумма должна быть положительной')
-        except:
-            messages.error(request, 'Некорректная сумма')
-    return redirect('profile')

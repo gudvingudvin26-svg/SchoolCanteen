@@ -5,68 +5,92 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .rating-select {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            gap: 5px;
+        }
+        .rating-select input {
+            display: none;
+        }
+        .rating-select label {
+            font-size: 2rem;
+            color: #ddd;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .rating-select label:hover,
+        .rating-select label:hover ~ label,
+        .rating-select input:checked ~ label {
+            color: #ffc107;
+        }
+        .dish-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Школьная столовая</a>
+            <a class="navbar-brand navbar-brand-custom" href="{% url 'home' %}">🍽️ Школьная столовая</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'home' %}">Главная</a>
-                <a class="nav-link" href="{% url 'menu_list' %}">Меню</a>
-                <a class="nav-link" href="{% url 'profile' %}">Профиль</a>
-                <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                <span class="nav-link text-white">{{ user.first_name }} {{ user.last_name }}</span>
+                <a class="nav-link" href="{% url 'home' %}">🏠 Главная</a>
+                <a class="nav-link" href="{% url 'profile' %}">👤 Профиль</a>
+                <a class="nav-link" href="{% url 'logout' %}">🚪 Выйти</a>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-5">
+    <div class="container mt-4">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">
-                            <i class="bi bi-star"></i>
-                            Добавить отзыв на {{ dish.name }}
-                        </h4>
+                <div class="dish-info">
+                    <h3>{{ dish.name }}</h3>
+                    <p class="mb-0">{{ dish.description }}</p>
+                </div>
+
+                <div class="card feature-card">
+                    <div class="card-header card-header-custom">
+                        <h5 class="mb-0">Оставить отзыв</h5>
                     </div>
                     <div class="card-body">
-                        <div class="text-center mb-4">
-                            <i class="bi bi-emoji-smile fs-1 text-warning"></i>
-                            <h5 class="mt-2">Оцените блюдо</h5>
-                            <p class="text-muted">Ваше мнение поможет улучшить качество питания</p>
-                        </div>
-
                         <form method="post">
                             {% csrf_token %}
 
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Ваша оценка</label>
-                                <div class="rating-select text-center">
-                                    <div class="btn-group" role="group">
-                                        {% for i in "12345"|make_list %}
-                                            <input type="radio" class="btn-check" name="rating" id="rating{{ i }}" value="{{ i }}" {% if forloop.last %}checked{% endif %} required>
-                                            <label class="btn btn-outline-warning" for="rating{{ i }}">
-                                                {{ i }} <i class="bi bi-star-fill"></i>
-                                            </label>
-                                        {% endfor %}
-                                    </div>
+                                <div class="rating-select">
+                                    <input type="radio" name="rating" value="5" id="star5" required>
+                                    <label for="star5">★</label>
+                                    <input type="radio" name="rating" value="4" id="star4">
+                                    <label for="star4">★</label>
+                                    <input type="radio" name="rating" value="3" id="star3">
+                                    <label for="star3">★</label>
+                                    <input type="radio" name="rating" value="2" id="star2">
+                                    <label for="star2">★</label>
+                                    <input type="radio" name="rating" value="1" id="star1">
+                                    <label for="star1">★</label>
                                 </div>
                             </div>
 
                             <div class="mb-4">
-                                <label for="comment" class="form-label fw-bold">Ваш отзыв</label>
-                                <textarea name="comment" id="comment" class="form-control" rows="5"
-                                          placeholder="Напишите, что вам понравилось или что можно улучшить..." required></textarea>
+                                <label class="form-label fw-bold">Ваш комментарий</label>
+                                <textarea name="comment" class="form-control" rows="5"
+                                          placeholder="Поделитесь своими впечатлениями о блюде..." required></textarea>
                             </div>
 
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="bi bi-check-circle"></i> Отправить отзыв
-                                </button>
-                                <a href="{% url 'review_list' dish.id %}" class="btn btn-outline-secondary">
-                                    <i class="bi bi-x-circle"></i> Отмена
-                                </a>
+                                <button type="submit" class="btn btn-success btn-lg">📝 Отправить отзыв</button>
+                                <a href="{% url 'daily_menu' dish.id %}" class="btn btn-outline-secondary">← Назад к меню</a>
                             </div>
                         </form>
                     </div>
@@ -74,6 +98,12 @@
             </div>
         </div>
     </div>
+
+    <footer class="footer-custom mt-5">
+        <div class="container">
+            <p class="mb-0">© 2026 Школьная столовая. Команда 875.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
